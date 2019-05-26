@@ -1,82 +1,71 @@
 
-# coding: utf-8
-
-# In[47]:
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-import time 
 
 
-## converts RBG to HSV
-RGB = np.uint8([[[177, 255, 255]]])
-HSV = cv2.cvtColor(RGB, cv2.COLOR_RGB2HSV)
-print(HSV)
+#Helps convert RGB value to HSV value
+def HSV(RGB):
+    RGB = np.uint8([[RGB]])
+    HSV = cv2.cvtColor(RGB, cv2.COLOR_RGB2HSV)
+    return HSV
 
 
-# In[31]:
-
-
+#Dictionary for color ranges
 colorRanges = {
-    'Blue': ([100,150,0],[140,255,250]),
-    'Green': ([40,100,150],[80,255,255]),
-    'Orange': ([1,100,150], [18,255,255]),
-    'Black': ([0, 0, 0], [180, 255, 30]),
-    'Red': ([0, 163, 255], [0, 255, 255]),
-    'Salmon': ([0, 32, 255], [0, 96, 255]),
-    'Pink': ([155, 78, 255], [155, 255, 255]),
-    'Teal': ([87, 78, 255], [87, 255, 255]),
-    
+    "Black": ([0, 0, 0], [0, 0, 50]),
+    "Grey": ([0, 0, 51], [0, 0, 235]),
+    "White" : ([0, 0, 236], [0, 0, 255]),
+    "Bright Red" : ([0, 255, 255], [7, 255, 255]),
+    "Orange" : ([8, 255, 255], [15, 255, 255]),
+    "Gold" : ([16, 255, 255], [22, 255, 255]),
+    "Yellow" : ([23, 255, 255], [34, 255, 255]),
+    "Neon Yellow" : ([35, 255, 255] , [42, 255, 255]),
+    "Light Green" : ([43, 255, 255], [56, 255, 255]),
+    "Green" : ([57, 255, 255], [71, 255, 255]),
+    "Seafoam": ([72, 255, 255], [81, 255, 255]),
+    "Turquoise" : ([82, 255, 255], [88, 255, 255]),
+    "Light Blue" : ([89, 255, 255], [96, 255, 255]),
+    "Blue" : ([97, 255, 255], [110, 255, 255]),
+    "Dark Blue": ([111, 255, 255], [135, 255, 255]),
+    "Purple" : ([136, 255, 255], [145, 255, 255]),
+    "Magenta" : ([146, 255, 255], [157, 255, 255]),
+    "Hot Pink" : ([158, 255, 255], [162, 255, 255]),
+    "Pink" : ([163, 255, 255], [169, 255, 255]),
+    "Rasberry" : ([170, 255, 255], [172, 255, 255]),
+    "Red" : ([173, 255, 255], [187, 255, 255]),  
+    "Brown" : ([0, 90, 90], [0, 170, 170 ]),
+    "Dark Green" : ([60, 125, 125], [71, 125, 125]),
+    "Dark Red" : ([0, 200, 200], [7, 200, 200])
 }
 
+#call function to detect color in the image
+def colorDetection(image):
+    #Converts image from BGR to RGB
+    BGRimage = cv2.imread(image)
+    RGBimage = cv2.cvtColor(BGRimage, cv2.COLOR_BGR2HSV)
 
-# In[32]:
+    #dictionary to count number of undetected pixels in image for each color
+    pixelDict = {}
 
-
-def get_color(image: str):
-    tic = time.time()
-    BGRImage = cv2.imread(image)
-    RGBimage = cv2.cvtColor(BGRImage, cv2.COLOR_BGR2HSV)
-    colors_list = []
-    color_detection = []
-    new_dict = dict()
+    #Detection for each colour in image
     for color in colorRanges:
-        counter = 0
         lowerLimit = np.array(colorRanges[color][0])
         upperLimit = np.array(colorRanges[color][1])
         imageSize = np.shape(RGBimage)
-        verifyPixel = np.zeros((imageSize[1], imageSize[2]))
+        background = np.zeros((imageSize[1], imageSize[2]))
         mask = cv2.inRange(RGBimage, lowerLimit, upperLimit)
         detection = cv2.bitwise_and(RGBimage, RGBimage, mask=mask)
-        plt.imshow(detection)
+        pixelCount = 0
         for pixel in detection:
-            if pixel.any() == verifyPixel.any():
-                counter +=1 
-        colors_list.append(color)
-        color_detection.append(counter)
-        new_dict[color] = counter
-    minimum = min(color_detection)
-    min_index = color_detection.index(minimum) 
-    min_colors = []
-    for key in new_dict:
-        if new_dict[key] == minimum:
-            min_colors.append(key)
-    tock = time.time()
-    if len(min_colors) > 1:
-        output = 'this image is a mix of ; '
-        for color in min_colors:
-            output += color + " "
-        return output
-    return ("the color of this image is " + colors_list[min_index])
-    #return tock - tic
-
-        
-
-
-# In[33]:
-
-
-get_color('xbox.jpeg')
-
+            if pixel.any() == background.any():
+                pixelCount += 1
+                pixelDict[color] = pixelCount
+                
+    #List of most dominant colors in the image
+    color = []
+    minKey = min(pixelDict, key = pixelDict.get)
+    for key in pixelDict:
+        if pixelDict[key] == pixelDict[minKey]:
+            color.append(key)
+    return color
